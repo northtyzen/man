@@ -1,0 +1,6 @@
+aiogram>=3.0.0
+music-tag
+Pillow
+yt-dlp
+imageio-ffmpeg
+aiohttp
