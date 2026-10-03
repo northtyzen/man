@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from session_manager import session_mgr
 from i18n import get_msg
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", ("8300695982:AAGHsKXnuQ-I9vjLDvdeL54zKcPJOZeslcQ")
+BOT_TOKEN = os.getenv("BOT_TOKEN","8300695982:AAGHsKXnuQ-I9vjLDvdeL54zKcPJOZeslcQ")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
