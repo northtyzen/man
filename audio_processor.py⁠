@@ -1,0 +1,135 @@
+import os
+import asyncio
+import music_tag
+
+
+class AudioProcessor:
+    @staticmethod
+    async def apply_tags(
+        file_path: str,
+        artist: str = None,
+        title: str = None,
+        album: str = None,
+        year: str = None,
+        cover_path: str = None,
+    ):
+        """Записывает ID3-теги и обложку в MP3-файл."""
+        loop = asyncio.get_running_loop()
+
+        def _write():
+            f = music_tag.load_file(file_path)
+            if artist and artist != "Unknown":
+                f["artist"] = artist
+            if title and title != "Unknown":
+                f["tracktitle"] = title
+            if album and album != "Unknown":
+                f["album"] = album
+            if year and year != "Unknown":
+                f["year"] = year
+            if cover_path and os.path.exists(cover_path):
+                with open(cover_path, "rb") as img:
+                    f["artwork"] = img.read()
+            f.save()
+
+        await loop.run_in_executor(None, _write)
+
+    @staticmethod
+    async def apply_bass_boost(
+        input_path: str, output_path: str, gain_db: int = 10
+    ):
+        """Усиливает басы (Bass Boost)."""
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            input_path,
+            "-af",
+            f"equalizer=f=60:width_type=h:width=50:g={gain_db}",
+            "-b:a",
+            "320k",
+            output_path,
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+
+    @staticmethod
+    async def apply_slowed_reverb(
+        input_path: str, output_path: str, speed_factor: float = 0.85
+    ):
+        """Замедляет трек и добавляет эффект эха/реверберации (Slowed + Reverb)."""
+        sample_rate = int(44100 * speed_factor)
+        filter_complex = f"asetrate={sample_rate},atempo=1.0,aecho=0.8:0.88:60:0.4"
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            input_path,
+            "-af",
+            filter_complex,
+            "-b:a",
+            "320k",
+            output_path,
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+
+    @staticmethod
+    async def apply_speed_up(
+        input_path: str, output_path: str, speed_factor: float = 1.15
+    ):
+        """Ускоряет трек и поднимает тональность (Speed Up / Nightcore)."""
+        sample_rate = int(44100 * speed_factor)
+        filter_complex = f"asetrate={sample_rate},atempo=1.0"
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            input_path,
+            "-af",
+            filter_complex,
+            "-b:a",
+            "320k",
+            output_path,
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+
+    @staticmethod
+    async def trim_audio(
+        input_path: str, output_path: str, start_sec: int, end_sec: int
+    ):
+        """Обрезает аудиозапись по указанному отрезку."""
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i",
+            input_path,
+            "-ss",
+            str(start_sec),
+            "-to",
+            str(end_sec),
+            "-c",
+            "copy",
+            output_path,
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+
+
+audio_processor = AudioProcessor()
