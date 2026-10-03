@@ -1,1 +1,29 @@
+class SessionManager:
+    def __init__(self):
+        self.user_sessions = {}
 
+    def get_session(self, user_id: int) -> dict:
+        if user_id not in self.user_sessions:
+            self.user_sessions[user_id] = {
+                "lang": "ru",          # Язык по умолчанию
+                "file_id": None,
+                "file_path": None,
+                "title": "Unknown",
+                "artist": "Unknown",
+                "album": "Unknown",
+                "year": "Unknown",
+                "genre": "Unknown",
+                "cover_path": None,
+                "state": None          # Ожидание ввода тегов/текста
+            }
+        return self.user_sessions[user_id]
+
+    def update_session(self, user_id: int, **kwargs):
+        session = self.get_session(user_id)
+        session.update(kwargs)
+
+    def clear_session(self, user_id: int):
+        if user_id in self.user_sessions:
+            del self.user_sessions[user_id]
+
+session_mgr = SessionManager()
